@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Ben Siran Academy — MSRT Grammar Quiz (Interactive)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f8fb; --card:#ffffff; --accent:#0b63d6; --muted:#6b7280; --success:#16a34a;
+    --warn:#f59e0b; --danger:#ef4444;
+  }
+  *{box-sizing:border-box}
+  body{
+    font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    margin:0; background: linear-gradient(180deg,#eef4ff 0%,var(--bg) 100%);
+    color:#0f172a; padding:28px;
+  }
+  .brand {display:flex; align-items:center; gap:14px; margin-bottom:18px;}
+  .logo {
+    width:60px; height:60px; border-radius:12px; background:linear-gradient(135deg,#083e8c,#2b6be6);
+    display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:18px;
+    box-shadow:0 8px 22px rgba(11,99,214,0.14);
+  }
+  h1{margin:0; font-size:20px}
+  .subtitle{color:var(--muted); margin-top:6px; font-size:13px}
+
+  .container{
+    max-width:980px; margin:16px auto; padding:22px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.95), var(--card));
+    border-radius:12px; box-shadow:0 12px 34px rgba(12,40,80,0.06);
+  }
+
+  .top-row{display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:14px}
+  .instructions{color:var(--muted); font-size:14px}
+  .meta{font-size:13px; color:var(--muted)}
+
+  .questions{display:grid; gap:12px}
+  .qcard{
+    background:var(--card); border-radius:10px; padding:14px; border:1px solid rgba(15,23,42,0.04);
+  }
+  .qmeta{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:8px}
+  .qnum{font-weight:700; color:#0f172a}
+  .qtext{margin:0 0 10px 0; font-weight:600}
+  .options label{
+    display:block; padding:8px 10px; border-radius:8px; cursor:pointer; margin-bottom:6px;
+    border:1px solid transparent; transition:background .12s, transform .06s;
+  }
+  .options input{margin-right:10px; accent-color:var(--accent)}
+  .options label:hover{background:rgba(11,99,214,0.04)}
+  .controls{display:flex; gap:12px; align-items:center; margin-top:18px}
+  .btn{
+    padding:10px 16px; border-radius:10px; cursor:pointer; font-weight:700; border:none;
+  }
+  .btn.primary{background:var(--accent); color:#fff; box-shadow:0 8px 20px rgba(11,99,214,0.12)}
+  .btn.ghost{background:transparent; color:var(--muted); border:1px solid rgba(15,23,42,0.06)}
+  .scorebox{margin-left:auto; display:flex; gap:10px; align-items:center; font-weight:700; padding:8px 12px; border-radius:9px}
+  .scorebox.good{background:rgba(16,185,129,0.08); color:#047857}
+  .scorebox.ok{background:rgba(245,158,11,0.08); color:#92400e}
+  .scorebox.poor{background:rgba(239,68,68,0.06); color:#9b1c1c}
+
+  #analysis{display:none; margin-top:18px; padding:14px; border-radius:8px; background:linear-gradient(90deg,#fff,#f7fbff); border-left:4px solid var(--accent)}
+  #analysis h2{margin:0 0 8px 0}
+  .summary{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px}
+  .summary .pill{padding:8px 10px; border-radius:8px; background:#f1f5f9; color:var(--muted); font-weight:600}
+
+  .per-q{margin-top:12px; display:grid; gap:8px}
+  .per-q .row{padding:10px; border-radius:8px; background:#fff; border:1px solid rgba(15,23,42,0.04)}
+  .correct{border-left:6px solid var(--success)}
+  .incorrect{border-left:6px solid var(--danger)}
+  .explain{color:var(--muted); font-size:13px; margin-top:6px}
+
+  footer{margin-top:18px; text-align:center; color:var(--muted); font-size:13px}
+  @media(min-width:900px){ .questions{grid-template-columns:1fr 1fr} }
+</style>
+</head>
+<body>
+  <div class="brand" role="banner">
+    <div class="logo" aria-hidden="true">BS</div>
+    <div>
+      <h1>Ben Siran Academy</h1>
+      <div class="subtitle">MSRT Grammar Quiz — Definite article, Comparatives & Superlatives</div>
+    </div>
+  </div>
+
+  <main class="container" role="main" aria-labelledby="mainTitle">
+    <div class="top-row">
+      <div>
+        <div id="mainTitle" style="font-weight:700">Interactive Quiz — 20 Questions</div>
+        <div class="instructions">Choose one best answer for each question. Click "Grade Quiz" to score and see detailed feedback per question.</div>
+      </div>
+      <div class="meta">Time suggested: 20–30 minutes</div>
+    </div>
+
+    <form id="quizForm" class="questions" aria-describedby="instructions">
+      <!-- JS will populate the questions -->
+    </form>
+
+    <div class="controls">
+      <button class="btn primary" id="gradeBtn" type="button">Grade Quiz</button>
+      <button class="btn ghost" id="revealBtn" type="button" disabled>Show Answer Key</button>
+      <div id="score" class="scorebox" style="display:none" aria-live="polite"></div>
+    </div>
+
+    <section id="analysis" aria-live="polite" aria-hidden="true">
+      <h2>Results & Analysis</h2>
+      <div class="summary" id="summaryPills"></div>
+      <div class="per-q" id="perQuestion"></div>
+      <details style="margin-top:12px">
+        <summary style="cursor:pointer; font-weight:700">Full Answer Key (click to expand)</summary>
+        <ul id="fullKey" style="margin-top:8px"></ul>
+      </details>
+    </section>
+
+    <footer>© <strong>Ben Siran Academy</strong> — For classroom use</footer>
+  </main>
+
+<script>
+/* QUESTIONS: id, text, choices array, correct (A-D), short explanation */
+const QUESTIONS = [
+  {id:1, text:"She visited ____ Louvre during her trip to Paris.", choices:["A) a","B) the","C) — (no article)","D) an"], correct:"B",
+   explain:"Use 'the Louvre' — the definite article before this famous museum name."},
+  {id:2, text:"____ democracy is built on participation and transparency.", choices:["A) The","B) A","C) An","D) — (no article)"], correct:"D",
+   explain:"Abstract noun used generally; no article is needed."},
+  {id:3, text:"They climbed ____ Mount Everest last summer.", choices:["A) the","B) a","C) — (no article)","D) an"], correct:"C",
+   explain:"Proper names like 'Mount Everest' usually take no article."},
+  {id:4, text:"I read an article in ____ Guardian about climate policy.", choices:["A) a","B) the","C) an","D) — (no article)"], correct:"B",
+   explain:"Newspapers typically take 'the' (the Guardian)."},
+  {id:5, text:"____ water in this region is not safe to drink.", choices:["A) A","B) The","C) An","D) — (no article)"], correct:"B",
+   explain:"Referring to a particular supply/local water: 'the water'."},
+  {id:6, text:"____ honesty is appreciated in professional settings.", choices:["A) The","B) A","C) An","D) — (no article)"], correct:"D",
+   explain:"'Honesty' as a general uncountable noun takes no article."},
+  {id:7, text:"She works at ____ United Nations headquarters.", choices:["A) a","B) the","C) — (no article)","D) an"], correct:"B",
+   explain:"Use 'the United Nations' when naming the organization."},
+  {id:8, text:"____ gold is a precious metal.", choices:["A) The","B) A","C) An","D) — (no article)"], correct:"D",
+   explain:"Materials used generally take no article: 'Gold is...'. "},
+  {id:9, text:"This version is ____ more stable than the previous one.", choices:["A) far","B) much","C) miles","D) more"], correct:"B",
+   explain:"'much more stable' is the most natural collocation here."},
+  {id:10, text:"Her score was ____ better than his.", choices:["A) miles","B) far","C) much","D) more"], correct:"A",
+   explain:"'miles better' is an idiomatic informal intensifier meaning far better."},
+  {id:11, text:"The new design is ____ more efficient than the old one.", choices:["A) much","B) far","C) miles","D) more"], correct:"A",
+   explain:"'much more efficient' is standard, neutral phrasing."},
+  {id:12, text:"This route is ____ longer but more scenic.", choices:["A) far","B) much","C) miles","D) more"], correct:"B",
+   explain:"'much longer' is the most idiomatic here."},
+  {id:13, text:"The revised proposal is ____ clearer than the original.", choices:["A) far","B) much","C) miles","D) more"], correct:"A",
+   explain:"'far clearer' emphasizes a noticeable difference in clarity."},
+  {id:14, text:"Her performance was ____ more convincing than his.", choices:["A) far","B) much","C) miles","D) more"], correct:"B",
+   explain:"'much more convincing' is the typical collocation."},
+  {id:15, text:"The updated software runs ____ faster than the old version.", choices:["A) far","B) much","C) miles","D) more"], correct:"B",
+   explain:"'much faster' is the natural comparative intensifier."},
+  {id:16, text:"That was ____ the most impressive presentation of the day.", choices:["A) easily","B) by far","C) certainly","D) clearly"], correct:"B",
+   explain:"'by far the most...' is a common superlative intensifier."},
+  {id:17, text:"She is ____ the most qualified applicant.", choices:["A) easily","B) by far","C) surely","D) clearly"], correct:"A",
+   explain:"'easily the most...' emphasizes how clearly superior she is."},
+  {id:18, text:"This is ____ the worst traffic I’ve ever seen.", choices:["A) easily","B) by far","C) probably","D) certainly"], correct:"B",
+   explain:"Both 'easily' and 'by far' can work; this item uses 'by far'."},
+  {id:19, text:"He is ____ the most experienced member of the team.", choices:["A) easily","B) by far","C) clearly","D) definitely"], correct:"A",
+   explain:"'easily the most experienced' emphasizes the gap in experience."},
+  {id:20, text:"That was ____ the most emotional scene in the film.", choices:["A) easily","B) by far","C) certainly","D) clearly"], correct:"B",
+   explain:"'by far the most emotional' is a strong superlative intensifier."}
+];
+
+/* Helper: create DOM for questions */
+const form = document.getElementById('quizForm');
+QUESTIONS.forEach(q => {
+  const card = document.createElement('div');
+  card.className = 'qcard';
+  card.id = 'q'+q.id;
+
+  const qnum = document.createElement('div');
+  qnum.className = 'qmeta';
+  qnum.innerHTML = `<div class="qnum">Q${q.id}</div>`;
+
+  const qtext = document.createElement('p');
+  qtext.className = 'qtext';
+  qtext.textContent = `${q.id}. ${q.text}`;
+
+  const opts = document.createElement('div');
+  opts.className = 'options';
+  q.choices.forEach(ch => {
+    const label = document.createElement('label');
+    const radio = document.createElement('input');
+    radio.type = 'radio';
+    radio.name = 'q'+q.id;
+    radio.value = ch[0]; // A/B/C/D
+    label.appendChild(radio);
+    label.appendChild(document.createTextNode(' ' + ch));
+    opts.appendChild(label);
+  });
+
+  card.appendChild(qnum);
+  card.appendChild(qtext);
+  card.appendChild(opts);
+  form.appendChild(card);
+});
+
+/* Grading & analysis */
+const gradeBtn = document.getElementById('gradeBtn');
+const revealBtn = document.getElementById('revealBtn');
+const scoreBox = document.getElementById('score');
+const analysis = document.getElementById('analysis');
+const summaryPills = document.getElementById('summaryPills');
+const perQuestion = document.getElementById('perQuestion');
+const fullKey = document.getElementById('fullKey');
+
+function gradeQuiz(){
+  let total = QUESTIONS.length;
+  let correct = 0;
+  perQuestion.innerHTML = '';
+  summaryPills.innerHTML = '';
+  fullKey.innerHTML = '';
+
+  QUESTIONS.forEach(q => {
+    const name = 'q'+q.id;
+    const radios = document.getElementsByName(name);
+    let chosen = null;
+    for (const r of radios) if (r.checked) chosen = r.value;
+    const isCorrect = chosen === q.correct;
+    if (isCorrect) correct++;
+
+    // Visual per-question block
+    const row = document.createElement('div');
+    row.className = 'row ' + (isCorrect ? 'correct' : 'incorrect');
+    const title = document.createElement('div');
+    title.innerHTML = `<strong>Q${q.id}.</strong> ${q.text}`;
+    const userAns = document.createElement('div');
+    userAns.style.marginTop = '6px';
+    userAns.innerHTML = `<strong>Your answer:</strong> ${chosen ? chosen : '<em>None</em>'} &nbsp; | &nbsp; <strong>Correct:</strong> ${q.correct}`;
+    const explain = document.createElement('div');
+    explain.className = 'explain';
+    explain.textContent = q.explain;
+
+    row.appendChild(title);
+    row.appendChild(userAns);
+    row.appendChild(explain);
+    perQuestion.appendChild(row);
+
+    // Fill full key
+    const li = document.createElement('li');
+    li.textContent = `Q${q.id}: ${q.correct} — ${q.choices.find(c=>c[0]===q.correct)}`;
+    fullKey.appendChild(li);
+
+    // small highlight on the question card
+    const qcard = document.getElementById('q'+q.id);
+    if (qcard){
+      qcard.style.boxShadow = isCorrect ? '0 6px 18px rgba(16,185,129,0.06)' : '0 6px 18px rgba(239,68,68,0.04)';
+      qcard.style.border = isCorrect ? '1px solid rgba(16,185,129,0.12)' : '1px solid rgba(239,68,68,0.08)';
+    }
+  });
+
+  const percent = Math.round((correct/total)*100);
+  scoreBox.style.display = 'inline-flex';
+  scoreBox.textContent = `${correct}/${total} (${percent}%)`;
+  scoreBox.className = 'scorebox ' + (percent >= 75 ? 'good' : percent >= 50 ? 'ok' : 'poor');
+
+  // Summary pills
+  const pCorrect = document.createElement('div'); pCorrect.className='pill'; pCorrect.textContent = `Correct: ${correct}`;
+  const pWrong = document.createElement('div'); pWrong.className='pill'; pWrong.textContent = `Incorrect/Blank: ${total-correct}`;
+  const pPercent = document.createElement('div'); pPercent.className='pill'; pPercent.textContent = `Score: ${percent}%`;
+  summaryPills.appendChild(pCorrect); summaryPills.appendChild(pWrong); summaryPills.appendChild(pPercent);
+
+  // Reveal analysis
+  analysis.style.display = 'block';
+  analysis.setAttribute('aria-hidden','false');
+  revealBtn.disabled = false;
+  // Auto-scroll to analysis for immediate feedback
+  analysis.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+gradeBtn.addEventListener('click', gradeQuiz);
+
+/* Reveal/Hide answer key */
+revealBtn.addEventListener('click', () => {
+  const details = document.getElementById('fullKey').parentElement;
+  if (details.open) { details.open = false; revealBtn.textContent = 'Show Answer Key'; }
+  else { details.open = true; revealBtn.textContent = 'Hide Answer Key'; }
+});
+
+/* Build initial (hidden) full key entries to keep in DOM for reveal; enabled after grading */
+QUESTIONS.forEach(q => {
+  const li = document.createElement('li');
+  li.textContent = `Q${q.id}: ${q.correct} — ${q.choices.find(c=>c[0]===q.correct)}`;
+  // we'll append them when grading to keep the DOM clean
+});
+
+/* Accessibility: allow Enter to grade when focused on button */
+gradeBtn.addEventListener('keydown', (e) => { if (e.key === 'Enter') gradeQuiz(); });
+
+</script>
+</body>
+</html>
